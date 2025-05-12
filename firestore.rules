@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 🔒 允許已登入的使用者新增資料
+    match /foodRecords/{document} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

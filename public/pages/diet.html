@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飲食分析 - LUM ZenMind</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .food-card {
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+            background-color: white;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+        .food-card img {
+            border-radius: 8px;
+            max-height: 150px;
+            object-fit: cover;
+        }
+        .food-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .food-card .actions button { /* 更明確的選擇器 */
+            margin-left: 5px; /* 給按鈕一些間距 */
+            background-color: #5bc0de; /* Info color for edit */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .food-card .actions button.delete {
+            background-color: #d9534f; /* Danger color for delete */
+        }
+        /* --- 在你現有的 <style> 或 styles.css 中新增/修改 --- */
+
+/* Modal 基本樣式 */
+.modal {
+    display: none; /* 初始隱藏 */
+    position: fixed; /* 固定定位，覆蓋整個視窗 */
+    z-index: 1000; /* 確保在最上層 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* 如果內容過多則可滾動 */
+    background-color: rgba(0,0,0,0.5); /* 半透明黑色背景遮罩 */
+    padding-top: 50px; /* Modal 距離頂部的距離，可調整 */
+    box-sizing: border-box;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: auto; /* 自動置中 */
+    padding: 0; /* 移除內邊距，由 header/body/footer 控制 */
+    border: 1px solid #ddd;
+    width: 90%; /* Modal 寬度，可依需求調整 */
+    max-width: 500px; /* 最大寬度 */
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative; /* 為了關閉按鈕的定位 */
+    animation: fadeInModal 0.3s ease-out; /* 簡單動畫 */
+}
+
+@keyframes fadeInModal {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background-color: #007bff; /* 範例顏色 (藍色系) */
+    color: white;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.4em;
+}
+
+.modal-body {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px; /* 輸入欄位間距 */
+}
+
+.modal-body label {
+    font-weight: bold;
+    margin-bottom: 6px;
+    display: block;
+    color: #333;
+}
+
+.modal-body input[type="text"],
+.modal-body input[type="number"],
+.modal-body input[type="date"],
+.modal-body input[type="time"],
+.modal-body input[type="file"] {
+    width: 100%; /* 佔滿父容器寬度 */
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-sizing: border-box; /* 確保 padding 和 border 不會增加總寬度 */
+    font-size: 1em;
+}
+.modal-body input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    outline: none;
+}
+
+
+.modal-footer {
+    padding: 15px 20px;
+    text-align: right; /* 按鈕靠右 */
+    background-color: #f9f9f9;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    border-top: 1px solid #eee;
+}
+
+.modal-footer button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    margin-left: 10px;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.modal-footer button.confirm {
+    background-color: #28a745; /* 綠色 */
+    color: white;
+}
+.modal-footer button.confirm:hover {
+    background-color: #218838;
+}
+
+.modal-footer button.cancel {
+    background-color: #6c757d; /* 灰色 */
+    color: white;
+}
+.modal-footer button.cancel:hover {
+    background-color: #5a6268;
+}
+
+.close-button {
+    color: white; /* 在 modal-header 中顏色為白 */
+    /* float: right; */ /* 改用 flex 後，float 不再理想 */
+    font-size: 28px;
+    font-weight: bold;
+    line-height: 1; /* 確保垂直居中 */
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #f1f1f1; /* 滑鼠懸停時顏色變淺 */
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* 圖片預覽 */
+#imagePreviewContainer {
+    margin-top: 10px;
+    text-align: center;
+}
+#imagePreview {
+    max-width: 100%;
+    max-height: 200px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-top: 8px;
+    display: none; /* 初始隱藏 */
+    object-fit: cover;
+}
+#removeImageButton {
+    background-color: #dc3545; /* 紅色 */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    margin-top: 8px;
+    display: none; /* 初始隱藏 */
+}
+#removeImageButton:hover {
+    background-color: #c82333;
+}
+
+/* 錯誤訊息樣式 */
+.error-message {
+    color: red;
+    font-size: 0.85em;
+    margin-top: 4px;
+    display: none; /* 初始隱藏 */
+}
+    </style>
+</head>
+<body>
+    <div>
+        <h3>飲食紀錄：</h3>
+        <div id="food-cards"></div>
+    </div>
+
+    <button onclick="openModal()" class="add-button">+</button>
+    <!-- 引入底部導航 -->
+        <div id="bottom-nav"></div>
+
+
+    <div id="foodModal" class="modal"> <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">新增飲食紀錄</h3>
+                <span class="close-button" onclick="closeModal()">&times;</span> </div>
+            <form id="foodForm"> <div class="modal-body">
+                    <div>
+                        <label for="foodName">食物名稱：</label>
+                        <input type="text" id="foodName" placeholder="例如：雞胸肉沙拉" required>
+                        <small class="error-message" id="foodNameError"></small>
+                    </div>
+                    <div>
+                        <label for="foodCalories">卡路里 (大卡)：</label>
+                        <input type="number" id="foodCalories" placeholder="例如：350" required min="0">
+                        <small class="error-message" id="foodCaloriesError"></small>
+                    </div>
+                    <div>
+                        <label for="foodDate">日期：</label>
+                        <input type="date" id="foodDate" required>
+                    </div>
+                    <div>
+                        <label for="foodTime">時間：</label>
+                        <input type="time" id="foodTime" required>
+                    </div>
+                    <div>
+                        <label for="foodImage">食物圖片 (選填)：</label>
+                        <input type="file" id="foodImage" accept="image/*" onchange="previewImageFile(this)"> <div id="imagePreviewContainer">
+                            <img id="imagePreview" src="#" alt="圖片預覽" />
+                            <button type="button" id="removeImageButton" onclick="clearImagePreviewAndFile()">移除圖片</button> </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="cancel" onclick="closeModal()">取消</button>
+                    <button type="button" class="confirm" onclick="validateAndConfirmEdit()">確認儲存</button> </div>
+            </form>
+        </div>
+    </div>
+
+    
+<script>
+            // 使用 fetch API 載入導航欄
+            fetch("/components/bottom-nav.html")
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById("bottom-nav").innerHTML = data;
+                })
+                .catch(err => console.error("無法載入導航欄", err));
+        </script>
+    <script>
+        // 全域變數 (可被模組或其他全域函式存取)
+        let editTargetId = null;
+        let imageSrc = ""; // 用於圖片預覽的 Data URL
+        let userRequestedImageDeletion = false; // 標記用戶是否在編輯時點擊了“移除圖片”
+        let currentEditImageURL = null; // 用於編輯模式下，記錄原始圖片的 URL
+        
+        // --- UI 控制函式 (不直接與 Firebase SDK 互動) ---
+        // 🚀 打開 Modal
+        // --- UI 控制函式 ---
+        function openModal(buttonOrNull = null) {
+            const modal = document.getElementById('foodModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const foodForm = document.getElementById('foodForm');
+            foodForm.reset(); // 重置表單所有欄位
+            clearAllErrorMessages(); // 清除所有錯誤提示
+
+            // 重置圖片相關狀態
+            imageSrc = "";
+            currentEditImageURL = null;
+            userRequestedImageDeletion = false;
+            document.getElementById('foodImage').value = null; // 清空 file input
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('imagePreview').src = '#';
+            document.getElementById('removeImageButton').style.display = 'none';
+
+            const now = new Date();
+            const formattedDate = now.toISOString().split('T')[0];
+            const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
+
+            if (buttonOrNull && typeof buttonOrNull.closest === 'function') { // 編輯模式
+                const card = buttonOrNull.closest('.food-card');
+                if (!card) {
+                    console.error("無法找到 food-card 元素");
+                    return;
+                }
+                modalTitle.innerText = "編輯飲食紀錄";
+                const name = card.querySelector('h4').innerText;
+                const caloriesText = card.querySelector('p').innerText;
+                const calories = caloriesText ? caloriesText.replace(' 卡', '') : '';
+                const dateTimeText = card.querySelector('span').innerText;
+                const [date, time] = dateTimeText ? dateTimeText.split(' ') : [formattedDate, formattedTime];
+                const docId = card.getAttribute('data-id');
+                const imgElement = card.querySelector('img');
+
+                document.getElementById('foodName').value = name;
+                document.getElementById('foodCalories').value = calories;
+                document.getElementById('foodDate').value = date;
+                document.getElementById('foodTime').value = time;
+                modal.setAttribute('data-id', docId);
+
+                if (imgElement && imgElement.src) {
+                    currentEditImageURL = imgElement.src; // 保存現有圖片 URL
+                    document.getElementById('imagePreview').src = imgElement.src;
+                    document.getElementById('imagePreview').style.display = 'block';
+                    document.getElementById('removeImageButton').style.display = 'inline-block';
+                }
+            } else { // 新增模式
+                modalTitle.innerText = "新增飲食紀錄";
+                document.getElementById('foodDate').value = formattedDate;
+                document.getElementById('foodTime').value = formattedTime;
+                modal.removeAttribute('data-id');
+            }
+            modal.style.display = 'block';
+
+            // 點擊 modal 外部區域關閉
+            window.addEventListener('click', outsideModalClickListener);
+            // 按 Esc 鍵關閉
+            document.addEventListener('keydown', escapeKeyListener);
+        }
+
+        const outsideModalClickListener = (event) => {
+            const modal = document.getElementById('foodModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
+
+        const escapeKeyListener = (event) => {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        };
+
+        function closeModal() {
+            const modal = document.getElementById('foodModal');
+            if (modal) modal.style.display = 'none';
+
+            // 清理圖片相關狀態和 DOM
+            imageSrc = "";
+            currentEditImageURL = null;
+            userRequestedImageDeletion = false;
+            document.getElementById('foodForm').reset(); // 確保表單被重置
+            document.getElementById('foodImage').value = null;
+            const imagePreviewEl = document.getElementById('imagePreview');
+            if (imagePreviewEl) {
+                imagePreviewEl.src = "#";
+                imagePreviewEl.style.display = 'none';
+            }
+            const removeImageButtonEl = document.getElementById('removeImageButton');
+            if (removeImageButtonEl) removeImageButtonEl.style.display = 'none';
+            
+            clearAllErrorMessages();
+
+            // 移除事件監聽器
+            window.removeEventListener('click', outsideModalClickListener);
+            document.removeEventListener('keydown', escapeKeyListener);
+        }
+
+        // 圖片相關函式 (如果啟用圖片功能)
+        function openCamera() { /* ... */ }
+        function captureImage() { /* ... imageSrc = ...; */ }
+        function previewImage(input) { /* ... reader.onload = function(e) { imageSrc = e.target.result; ... } ... */ }
+        // 清除圖片預覽和檔案選擇
+        function clearImagePreviewAndFile() {
+            document.getElementById('foodImage').value = ""; // 清空 file input 的值
+            document.getElementById('imagePreview').src = '#';
+            document.getElementById('imagePreview').style.display = 'none';
+            document.getElementById('removeImageButton').style.display = 'none';
+            imageSrc = ""; // Data URL 清空
+            userRequestedImageDeletion = true; // 標記用戶希望移除（現有的）圖片
+        }
+
+        // 表單驗證並觸發儲存
+        function validateAndConfirmEdit() {
+            let isValid = true;
+            clearAllErrorMessages(); // 先清除舊的錯誤訊息
+
+            const name = document.getElementById('foodName').value.trim();
+            const calories = document.getElementById('foodCalories').value;
+            const date = document.getElementById('foodDate').value;
+            const time = document.getElementById('foodTime').value;
+
+            if (!name) {
+                showError('foodNameError', '食物名稱不能為空');
+                isValid = false;
+            }
+            if (!calories) {
+                showError('foodCaloriesError', '卡路里不能為空');
+                isValid = false;
+            } else if (isNaN(calories) || Number(calories) < 0) {
+                showError('foodCaloriesError', '卡路里必須是有效的非負數字');
+                isValid = false;
+            }
+            if (!date) {
+                // HTML5 date input 通常會自行驗證，但可視情況增加
+                showError('foodDateError', '請選擇日期'); // 假設有 foodDateError 元素
+                isValid = false;
+            }
+            if (!time) {
+                // HTML5 time input 通常會自行驗證
+                showError('foodTimeError', '請選擇時間'); // 假設有 foodTimeError 元素
+                isValid = false;
+            }
+
+            if (isValid) {
+                confirmEdit(); // 如果驗證通過，才執行原來的 confirmEdit
+            }
+        }
+
+        // 顯示錯誤訊息
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block'; // 顯示錯誤訊息
+            }
+        }
+
+        // 清除所有表單錯誤訊息
+        function clearAllErrorMessages() {
+            const errorMessages = document.querySelectorAll('.error-message'); // 根據你的 class 選擇
+            errorMessages.forEach(el => {
+                el.textContent = '';
+                el.style.display = 'none'; // 隱藏
+            });
+        }
+
+
+        // --- CRUD 及資料顯示函式 (將依賴模組中暴露的 Firebase 方法) ---
+        function createCard(name, calories, date, time, imageSrcUrl, docId) {
+            const foodCardsContainer = document.getElementById('food-cards');
+            if (!foodCardsContainer) return;
+
+            // 檢查是否已存在相同 docId 的卡片，避免重複 (雖然分頁邏輯應處理，但多一層保護)
+            if (document.querySelector(`.food-card[data-id="${docId}"]`)) {
+                console.warn(`ID 為 ${docId} 的卡片已存在，跳過創建。`);
+                return;
+            }
+            
+            const foodCard = document.createElement('div');
+            foodCard.classList.add('food-card');
+            foodCard.setAttribute('data-id', docId);
+
+            foodCard.innerHTML = `
+                <div class="food-card-header">
+                    <h4>${name}</h4>
+                    <div class="actions">
+                        <button onclick="openModal(this)">✏️ 編輯</button>
+                        <button onclick="removeCard('${docId}', this)" class="delete">🗑️ 刪除</button>
+                    </div>
+                </div>
+                <p>${calories} 卡</p>
+                <span>${date} ${time}</span>
+                ${imageSrcUrl ? `<img src="${imageSrcUrl}" alt="${name}">` : ''}
+            `;
+            // 新增的卡片，如果希望按時間順序顯示在最前面 (假設是降序)
+            if (foodCardsContainer.firstChild) {
+                foodCardsContainer.insertBefore(foodCard, foodCardsContainer.firstChild);
+            } else {
+                foodCardsContainer.appendChild(foodCard);
+            }
+        }
+        
+        // 修改後的 confirmEdit (主要調整圖片處理邏輯)
+async function confirmEdit() {
+    const name = document.getElementById('foodName').value.trim();
+    const calories = document.getElementById('foodCalories').value;
+    const date = document.getElementById('foodDate').value;
+    const time = document.getElementById('foodTime').value;
+    const modal = document.getElementById('foodModal');
+    const docId = modal.getAttribute('data-id'); // null if adding new
+
+    // 基本驗證 (雖然 validateAndConfirmEdit 做了，這裡再保險一下)
+    if (!name || !calories || !date || !time) {
+        alert("請填寫所有必填欄位！"); // 理論上不會執行到這
+        return;
+    }
+    if (!window.currentUserId) {
+        alert("使用者未登入或無法獲取使用者資訊，請重新登入。");
+        return;
+    }
+
+    const dataToSave = {
+        userId: window.currentUserId,
+        name,
+        calories: Number(calories),
+        date,
+        time,
+        image: "" // 預設圖片為空
+    };
+
+    try {
+        let oldImageURLToDelete = null;
+
+        // 1. 處理圖片上傳/更新/刪除
+        if (imageSrc) { // 有新選擇的圖片 (imageSrc 是新圖的 Data URL)
+            console.log("上傳新圖片...");
+            const imageFileRef = window.FirebaseStorageRefs.ref(window.storage, `foodImages/${window.currentUserId}/${Date.now()}.png`); // 假設都轉成 png
+            await window.FirebaseStorageMethods.uploadString(imageFileRef, imageSrc, 'data_url');
+            dataToSave.image = await window.FirebaseStorageMethods.getDownloadURL(imageFileRef);
+            
+            if (docId && currentEditImageURL) { // 如果是編輯模式，且之前有圖片，則標記舊圖片待刪除
+                oldImageURLToDelete = currentEditImageURL;
+            }
+        } else if (docId && currentEditImageURL) { // 編輯模式，且沒有新選圖片
+            if (userRequestedImageDeletion) { // 用戶點了 "移除圖片"
+                console.log("用戶請求刪除現有圖片...");
+                dataToSave.image = ""; // 資料庫中圖片欄位清空
+                oldImageURLToDelete = currentEditImageURL; // 標記舊圖片待刪除
+            } else {
+                // 用戶未選擇新圖，也未點擊移除 -> 保留原有圖片
+                console.log("保留原有圖片...");
+                dataToSave.image = currentEditImageURL;
+            }
+        }
+        // 其他情況 (新增且無圖，或編輯時本無圖也未選新圖)，dataToSave.image 已是 ""
+
+        // 2. 儲存資料到 Firestore
+        if (docId) { // 更新現有記錄
+            const docRef = window.FirebaseMethods.doc(window.db, "foodRecords", docId);
+            await window.FirebaseMethods.updateDoc(docRef, dataToSave);
+            console.log(`✅ 資料已更新：${docId}`);
+
+            // 更新前端對應卡片的顯示
+            const cardToUpdate = document.querySelector(`.food-card[data-id="${docId}"]`);
+            if (cardToUpdate) {
+                cardToUpdate.querySelector('h4').innerText = dataToSave.name;
+                cardToUpdate.querySelector('p').innerText = `${dataToSave.calories} 卡`;
+                cardToUpdate.querySelector('span').innerText = `${dataToSave.date} ${dataToSave.time}`;
+                const imgElement = cardToUpdate.querySelector('img');
+                if (dataToSave.image) {
+                    if (imgElement) {
+                        imgElement.src = dataToSave.image;
+                        imgElement.alt = dataToSave.name;
+                        imgElement.style.display = 'block'; // 確保可見
+                    } else {
+                        const newImg = document.createElement('img');
+                        newImg.src = dataToSave.image;
+                        newImg.alt = dataToSave.name;
+                        cardToUpdate.appendChild(newImg); // 或插入到合適位置
+                    }
+                } else if (imgElement) {
+                    imgElement.remove(); // 如果更新後沒有圖片，移除圖片元素
+                }
+            }
+        } else { // 新增記錄
+            const newDocRef = await window.FirebaseMethods.addDoc(window.FirebaseMethods.collection(window.db, "foodRecords"), dataToSave);
+            console.log("✅ 資料已新增至 Firebase, ID:", newDocRef.id);
+            createCard(dataToSave.name, dataToSave.calories, dataToSave.date, dataToSave.time, dataToSave.image, newDocRef.id);
+        }
+
+        // 3. 如果有舊圖片需要刪除，則從 Storage 中刪除
+        if (oldImageURLToDelete) {
+            console.log("嘗試從 Storage 刪除舊圖片:", oldImageURLToDelete);
+            try {
+                // 確保你的 FirebaseStorageMethods 包含 deleteObject
+                const oldImageRef = window.FirebaseStorageRefs.ref(window.storage, oldImageURLToDelete);
+                await window.FirebaseStorageMethods.deleteObject(oldImageRef);
+                console.log("🗑️ 舊圖片已從 Storage 刪除。");
+            } catch (e) {
+                console.warn("刪除 Storage 中的舊圖片失敗 (可能已被刪除或不存在):", e.message);
+            }
+        }
+
+        closeModal();
+    } catch (error) {
+        console.error("❌ 資料儲存失敗：", error.message, error);
+        // 可以在 Modal 內顯示更友好的錯誤訊息，而不是 alert
+        showError('foodFormError', `儲存失敗：${error.message}`); // 假設 modal-footer 或 body 有個 <small id="foodFormError"></small>
+        // alert("資料儲存失敗，請檢查網路連線或稍後再試。");
+    }
+}
+
+       // `removeCard` 函數也應包含刪除 Storage 圖片的邏輯
+async function removeCard(docId, buttonElement) {
+    if (!docId) {
+        console.error("無效的文檔 ID");
+        return;
+    }
+    const cardElement = buttonElement.closest('.food-card');
+    let imageUrlToDelete = null;
+    if (cardElement) {
+        const imgElement = cardElement.querySelector('img');
+        if (imgElement && imgElement.src && imgElement.src.startsWith("https://firebasestorage.googleapis.com/")) {
+            imageUrlToDelete = imgElement.src;
+        }
+    }
+
+    if (confirm("確定要永久刪除這筆飲食紀錄嗎？此操作無法復原。")) {
+        try {
+            // 1. 刪除 Firestore 文檔
+            const docRef = window.FirebaseMethods.doc(window.db, "foodRecords", docId);
+            await window.FirebaseMethods.deleteDoc(docRef);
+            console.log(`🗑️ 已從 Firebase 刪除資料：${docId}`);
+            
+            // 2. 如果有關聯的圖片，從 Storage 刪除
+            if (imageUrlToDelete) {
+                console.log("準備刪除 Storage 中的圖片:", imageUrlToDelete);
+                try {
+                    const imageRefToDelete = window.FirebaseStorageRefs.ref(window.storage, imageUrlToDelete);
+                    await window.FirebaseStorageMethods.deleteObject(imageRefToDelete); // <--- ***確保此方法已暴露***
+                    console.log(`🗑️ 已從 Firebase Storage 刪除圖片：${imageUrlToDelete}`);
+                } catch (storageError) {
+                    console.warn("刪除 Storage 中的圖片失敗 (可能已被刪除或權限問題)：", storageError.message);
+                    // 通常不應阻斷主刪除流程，記錄警告即可
+                }
+            }
+
+            // 3. 從前端移除卡片
+            if (cardElement) {
+                cardElement.remove();
+            }
+        } catch (error) {
+            console.error("❌ 刪除 Firebase 資料失敗：", error.message, error);
+            alert("刪除資料時發生錯誤，請稍後再試。");
+        }
+    }
+}
+
+        // --- 分頁載入相關變數和函式 (將依賴模組中暴露的 Firebase 方法) ---
+        let lastVisibleDoc = null; // Firestore DocumentSnapshot for pagination
+        const recordsPerPage = 5;  // 每頁載入的記錄數
+        let isLoadingMore = false; // 防止重複觸發載入
+
+        async function loadMoreFoodRecords(isInitialLoad = false) {
+            if (isLoadingMore) return;
+            if (!window.currentUserId) { // 確保 userId 已設定
+                console.log("使用者未登入，暫停載入資料。");
+                return;
+            }
+            isLoadingMore = true;
+            console.log(isInitialLoad ? "🔄 正在初始載入飲食紀錄..." : "🔄 正在載入更多飲食紀錄...");
+
+            const foodCardsContainer = document.getElementById('food-cards');
+            if (isInitialLoad) {
+                foodCardsContainer.innerHTML = ''; // 清空之前的卡片
+                lastVisibleDoc = null; // 重置分頁游標
+            }
+
+            try {
+                const FBM = window.FirebaseMethods; // 簡寫
+                const commonQueries = [
+                    FBM.where("userId", "==", window.currentUserId),
+                    FBM.orderBy("date", "desc"),
+                    FBM.orderBy("time", "desc"), // 次要排序依據時間
+                    FBM.limit(recordsPerPage)
+                ];
+
+                let q;
+                if (lastVisibleDoc && !isInitialLoad) {
+                    q = FBM.query(FBM.collection(window.db, "foodRecords"), ...commonQueries, FBM.startAfter(lastVisibleDoc));
+                } else {
+                    q = FBM.query(FBM.collection(window.db, "foodRecords"), ...commonQueries);
+                }
+
+                const querySnapshot = await FBM.getDocs(q);
+
+                if (querySnapshot.empty) {
+                    console.log(isInitialLoad ? "暫無飲食紀錄。" : "🏁 已載入所有飲食紀錄。");
+                    if (!isInitialLoad) { // 如果不是初始載入且結果為空，則移除捲動監聽
+                        window.removeEventListener("scroll", handleScroll);
+                    }
+                } else {
+                    querySnapshot.forEach(doc => {
+                        const data = doc.data();
+                        createCard(data.name, data.calories, data.date, data.time, data.image, doc.id);
+                    });
+                    lastVisibleDoc = querySnapshot.docs[querySnapshot.docs.length - 1];
+                    if (isInitialLoad && querySnapshot.docs.length === recordsPerPage) { // 初始載入且可能還有更多
+                        window.addEventListener("scroll", handleScroll);
+                    } else if (querySnapshot.docs.length < recordsPerPage) { // 載入的筆數少於請求筆數，表示到底了
+                         window.removeEventListener("scroll", handleScroll);
+                         console.log("🏁 已載入所有飲食紀錄 (因回傳筆數少於請求)。");
+                    }
+                }
+            } catch (error) {
+                console.error("❌ 載入飲食紀錄時發生錯誤:", error.message, error);
+            } finally {
+                isLoadingMore = false;
+            }
+        }
+
+        function handleScroll() {
+            // 接近底部 150px 時，且不在載入中，且還有更多資料 (lastVisibleDoc 存在)
+            if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 150) && !isLoadingMore && lastVisibleDoc) {
+                loadMoreFoodRecords(false);
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { 
+            getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
+            query, where, orderBy, startAfter, limit 
+            // onSnapshot // 暫時不用，若要即時更新需謹慎整合
+        } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+        import { getStorage, ref as storageRef, uploadString, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-storage.js"; // storage 'ref' renamed to 'storageRef'
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMPBJOBzSrJZUHK781948I_ROqVux3YHI",
+            authDomain: "lumzenmind.firebaseapp.com",
+            projectId: "lumzenmind",
+            storageBucket: "lumzenmind.appspot.com",
+            messagingSenderId: "1028669516548",
+            appId: "1:1028669516548:web:3888d2c7bd5d1747207e51",
+            measurementId: "G-DMYR2Q35NG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const storage = getStorage(app);
+
+        // 將 Firebase SDK 的方法和實例暴露到全域，供非模組 <script> 使用
+        window.db = db;
+        window.authInstance = auth; // 可以用來獲取 currentUser
+        window.storage = storage;   // 暴露 storage 實例
+
+        window.FirebaseMethods = {
+            doc, deleteDoc, addDoc, updateDoc, collection, getDocs, 
+            query, where, orderBy, startAfter, limit
+        };
+        // 暴露 Storage 相關方法 (注意 storage 的 ref 與 firestore 的 ref 名稱衝突，已重命名)
+        window.FirebaseStorageRefs = { ref: storageRef }; // 使用 storageRef
+        window.FirebaseStorageMethods = { uploadString, getDownloadURL , deleteObject };
+
+
+        // 將全域定義的 UI 函式掛到 window，確保 onclick 及模組內呼叫可找到它們
+        // 這些函式定義在上面的 <script> 標籤中
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.confirmEdit = confirmEdit; // confirmEdit 裡面會用到 window.FirebaseMethods 等
+        window.removeCard = removeCard;   // removeCard 裡面會用到 window.FirebaseMethods 等
+        window.createCard = createCard;
+
+        // 如果啟用了圖片功能
+        // window.openCamera = openCamera;
+        // window.captureImage = captureImage;
+        // window.previewImage = previewImage;
+
+
+        onAuthStateChanged(auth, (user) => {
+            const foodCardsContainer = document.getElementById('food-cards');
+            if (user) {
+                console.log("使用者已登入:", user.email, user.uid);
+                window.currentUserId = user.uid; // 將當前 userId 存到全域變數
+                if (typeof loadMoreFoodRecords === 'function') {
+                    loadMoreFoodRecords(true); // 觸發初始資料載入
+                } else {
+                    console.error("loadMoreFoodRecords 函式未定義！");
+                }
+            } else {
+                console.log("使用者已登出或未登入。");
+                window.currentUserId = null;
+                if (foodCardsContainer) foodCardsContainer.innerHTML = '<p>請先登入以查看和管理您的飲食紀錄。</p>';
+                lastVisibleDoc = null; // 清除分頁游標
+                window.removeEventListener("scroll", handleScroll); // 移除捲動監聽
+                // window.location.href = "/login.html"; // 例如導向登入頁面
+            }
+        });
+
+        // 停用基於 onSnapshot 的 loadFromFirestore，以分頁為主
+        /*
+        function loadFromFirestore() {
+            // ... onSnapshot logic here ...
+            // If re-enabled, ensure it correctly filters by userId and handles pagination carefully.
+        }
+        */
+    </script>
+</body>
+</html>

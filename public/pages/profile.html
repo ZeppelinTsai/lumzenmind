@@ -1,0 +1,126 @@
+""<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/styles.css">
+    <title>升級會員 - LUM ZenMind</title>
+    <style>
+        .upgrade-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            margin-top: 20px;
+        }
+        
+        .upgrade-button:hover {
+            background-color: #4967e8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-close {
+            float: right;
+            cursor: pointer;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .confirm-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .confirm-button:hover {
+            background-color: #4967e8;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-actions">
+        <button class="upgrade-button" id="upgradeButton">升級會員</button>
+    </div>
+
+    <div id="upgradeModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="closeModal">&times;</span>
+            <h2>升級為尊榮會員</h2>
+            <p>享受更多專屬功能，獲得更深入的心靈引導！</p>
+            <p><strong>NT$ 299 / 月</strong></p>
+            <button class="confirm-button" id="confirmUpgrade">確認升級</button>
+        </div>
+    </div>
+
+    <script>
+        const upgradeButton = document.getElementById('upgradeButton');
+        const upgradeModal = document.getElementById('upgradeModal');
+        const closeModal = document.getElementById('closeModal');
+        const confirmUpgrade = document.getElementById('confirmUpgrade');
+
+        upgradeButton.addEventListener('click', () => {
+            upgradeModal.style.display = 'block';
+        });
+
+        closeModal.addEventListener('click', () => {
+            upgradeModal.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target == upgradeModal) {
+                upgradeModal.style.display = 'none';
+            }
+        });
+
+        confirmUpgrade.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/upgrade-membership', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId: '12345' })
+                });
+
+                if (response.ok) {
+                    alert('升級成功！歡迎成為尊榮會員。');
+                    upgradeModal.style.display = 'none';
+                } else {
+                    alert('升級失敗，請稍後再試。');
+                }
+            } catch (error) {
+                console.error('API 請求錯誤:', error);
+                alert('無法連接到伺服器，請稍後再試。');
+            }
+        });
+    </script>
+</body>
+</html>""

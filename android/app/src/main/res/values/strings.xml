@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LUMZenMind</string>
+    <string name="title_activity_main">LUMZenMind</string>
+    <string name="package_name">com.lumandpei.lumzenmind</string>
+    <string name="custom_url_scheme">com.lumandpei.lumzenmind</string>
+</resources>
