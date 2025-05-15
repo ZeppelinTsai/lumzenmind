@@ -477,13 +477,21 @@
     </div>
 
     <script type="module">
-        // Import Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
-        import { getAuth, GoogleAuthProvider,GithubAuthProvider, signInWithPopup, onAuthStateChanged, signOut, 
-                createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
-
-        const githubProvider = new GithubAuthProvider();
-        // Firebase 設定
+        // ✅ 載入 Firebase SDK 模組
+        import { 
+            initializeApp 
+        } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        
+        import { 
+            getFirestore, collection, setDoc, doc, getDoc, serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js";
+        
+        import { 
+            getAuth, GoogleAuthProvider, GithubAuthProvider, signInWithPopup, 
+            onAuthStateChanged, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword 
+        } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+    
+        // ✅ Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyBMPBJOBzSrJZUHK781948I_ROqVux3YHI",
             authDomain: "lumzenmind.firebaseapp.com",
@@ -493,197 +501,127 @@
             appId: "1:1028669516548:web:3888d2c7bd5d1747207e51",
             measurementId: "G-DMYR2Q35NG"
         };
-
-        // 初始化 Firebase
+    
+        // ✅ 初始化 Firebase
         const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
         const auth = getAuth(app);
         const provider = new GoogleAuthProvider();
-        
-        // DOM 元素
+        const githubProvider = new GithubAuthProvider();
+    
+        // ✅ 取得所有需要的 DOM 元素
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const userInfo = document.getElementById('userInfo');
+        const logoutBtn = document.getElementById('logout-btn');
         const userName = document.getElementById('userName');
         const userPhoto = document.getElementById('userPhoto');
-        const logoutBtn = document.getElementById('logout-btn');
         const continueBtn = document.getElementById('continue-btn');
-        
-        // 表單切換
-        document.getElementById('show-register').addEventListener('click', () => {
-            loginForm.style.display = 'none';
-            registerForm.style.display = 'block';
-        });
-        
-        document.getElementById('show-login').addEventListener('click', () => {
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'block';
-        });
-        
-        // Google 登入
-        document.getElementById('google-login-btn').addEventListener('click', () => {
-            googleAuth();
-        });
-        
-        document.getElementById('google-register-btn').addEventListener('click', () => {
-            googleAuth();
-        });
-        
-        // 郵件密碼登入
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            const errorElement = document.getElementById('login-error');
-            
-            if (!email || !password) {
-                errorElement.textContent = '請填寫所有欄位';
-                errorElement.style.display = 'block';
-                return;
+    
+        // 🔄 Firebase Firestore 寫入資料
+        async function saveUserData(user) {
+            const userRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userRef);
+    
+            if (!docSnap.exists()) {
+                await setDoc(userRef, {
+                    name: user.displayName || "未提供",
+                    email: user.email,
+                    photoURL: user.photoURL || 'https://via.placeholder.com/100',
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp()
+                });
+
+                console.log("📝 使用者資料已新增至 Firestore");
+            } else {
+                await setDoc(userRef, {
+                    lastLogin: serverTimestamp()
+                }, { merge: true });
+                console.log("🔄 使用者資料已更新 lastLogin");
             }
-            
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    errorElement.style.display = 'none';
-                    
-                    // ✅ 手動更新畫面狀態
-                    loginForm.style.display = 'none';
-                    registerForm.style.display = 'none';
-                    userInfo.style.display = 'block';
-                    logoutBtn.style.display = 'block';
-                    
-                    // ✅ 更新使用者資料
-                    const user = userCredential.user;
-                    userName.textContent = user.displayName || user.email;
-                    if (user.photoURL) {
-                        userPhoto.src = user.photoURL;
-                    }
-                })
-                .catch((error) => {
-                    let errorMessage = '登入失敗，請檢查您的郵箱和密碼';
-                    if (error.code === 'auth/user-not-found') {
-                        errorMessage = '找不到此用戶，請先註冊';
-                    } else if (error.code === 'auth/wrong-password') {
-                        errorMessage = '密碼錯誤，請重試';
-                    }
-                    errorElement.textContent = errorMessage;
-                    errorElement.style.display = 'block';
-                });
+        }
+    
+        // ✅ Google 登入
+        // ✅ Google 登入
+        document.getElementById('google-login-btn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                await saveUserData(result.user);
 
-        });
-        document.getElementById('github-login-btn').addEventListener('click', () => {
-            signInWithPopup(auth, githubProvider)
-                .then((result) => {
-                    console.log("✅ GitHub 登入成功：", result.user);
+                // ✅ 強制刷新，獲取最新的使用者資料
+                const currentUser = auth.currentUser;
+                await currentUser.reload();
+                
+                // ✅ 更新資料
+                userPhoto.src = currentUser.photoURL || 'https://via.placeholder.com/100';
+                userName.textContent = currentUser.displayName || currentUser.email;
 
-                    // 更新畫面
-                    loginForm.style.display = 'none';
-                    registerForm.style.display = 'none';
-                    userInfo.style.display = 'block';
-                    logoutBtn.style.display = 'block';
-
-                    // 更新使用者資料
-                    userName.textContent = result.user.displayName || result.user.email;
-                    if (result.user.photoURL) {
-                        userPhoto.src = result.user.photoURL;
-                    } else {
-                        userPhoto.src = 'https://via.placeholder.com/100'; // 如果沒有圖片，給一個佔位圖
-                    }
-                })
-                .catch((error) => {
-                    console.error("❌ GitHub 登入失敗：", error.message);
-                    alert("使用 GitHub 登入失敗，請稍後再試。");
-                });
+                console.log("✅ Google 登入成功並且獲取最新資料");
+            } catch (error) {
+                console.error("Google登入失敗：", error.message);
+            }
         });
 
-        
-        // 郵件密碼註冊
-        document.getElementById('register-btn').addEventListener('click', () => {
+    
+        // ✅ GitHub 登入
+        document.getElementById('github-login-btn').addEventListener('click', async () => {
+            try {
+                const result = await signInWithPopup(auth, githubProvider);
+                await saveUserData(result.user);
+            } catch (error) {
+                console.error("GitHub登入失敗：", error.message);
+            }
+        });
+    
+        // ✅ Email 註冊
+        document.getElementById('register-btn').addEventListener('click', async () => {
             const name = document.getElementById('register-name').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-            const confirmPassword = document.getElementById('register-confirm-password').value;
-            const errorElement = document.getElementById('register-error');
-            const successElement = document.getElementById('register-success');
-            
-            errorElement.style.display = 'none';
-            successElement.style.display = 'none';
-            
-            if (!name || !email || !password || !confirmPassword) {
-                errorElement.textContent = '請填寫所有欄位';
-                errorElement.style.display = 'block';
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                errorElement.textContent = '兩次輸入的密碼不一致';
-                errorElement.style.display = 'block';
-                return;
-            }
-            
-            if (password.length < 6) {
-                errorElement.textContent = '密碼至少需要6個字符';
-                errorElement.style.display = 'block';
-                return;
-            }
-            
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // 註冊成功
-                    successElement.style.display = 'block';
-                    
-                    // 清空表單
-                    document.getElementById('register-name').value = '';
-                    document.getElementById('register-email').value = '';
-                    document.getElementById('register-password').value = '';
-                    document.getElementById('register-confirm-password').value = '';
-                    
-                    // 3秒後切換到登入頁面
-                    setTimeout(() => {
-                        registerForm.style.display = 'none';
-                        loginForm.style.display = 'block';
-                        successElement.style.display = 'none';
-                    }, 3000);
-                })
-                .catch((error) => {
-                    let errorMessage = '註冊失敗，請重試';
-                    if (error.code === 'auth/email-already-in-use') {
-                        errorMessage = '此郵箱已被註冊，請直接登入';
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMessage = '無效的電子郵件格式';
-                    }
-                    errorElement.textContent = errorMessage;
-                    errorElement.style.display = 'block';
+    
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+    
+                await setDoc(doc(db, "users", user.uid), {
+                    name: name || "未提供",
+                    email: email,
+                    createdAt: serverTimestamp(),
+                    lastLogin: serverTimestamp()
                 });
+                console.log("📝 註冊成功，使用者資料已寫入 Firestore");
+    
+            } catch (error) {
+                console.error("註冊失敗：", error.message);
+            }
         });
-        
-        // Google 授權登入
-        function googleAuth() {
-            signInWithPopup(auth, provider)
-                .then((result) => {
-                    // 登入成功
-                })
-                .catch((error) => {
-                    console.error("Google登入失敗：", error.message);
-                    document.getElementById('login-error').textContent = '使用Google登入失敗，請重試';
-                    document.getElementById('login-error').style.display = 'block';
-                });
-        }
-        
-        // 登出
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            signOut(auth).then(() => {
-                // 登出成功，UI會自動更新
-            }).catch((error) => {
+    
+        // ✅ Email 登入
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+    
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                await saveUserData(userCredential.user);
+            } catch (error) {
+                console.error("登入失敗：", error.message);
+            }
+        });
+    
+        // ✅ 登出
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                console.log("🔓 已成功登出");
+                location.reload();
+            } catch (error) {
                 console.error("登出失敗：", error.message);
-            });
+            }
         });
-        
-        // 繼續按鈕 - 跳轉到主頁
-        document.getElementById('continue-btn').addEventListener('click', () => {
-            window.location.href = "/pages/home.html";
-        });
-        
-        // 監聽用戶登入狀態
-        onAuthStateChanged(auth, (user) => {
+    
+        // 🔄 監聽用戶登入狀態
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
                 loginForm.style.display = 'none';
                 registerForm.style.display = 'none';
@@ -691,10 +629,18 @@
                 logoutBtn.style.display = 'block';
 
                 userName.textContent = user.displayName || user.email;
-                if (user.photoURL) {
-                    userPhoto.src = user.photoURL;
+                
+                // ✅ 如果 `photoURL` 是 null，嘗試從 Firestore 取出來
+                if (!user.photoURL) {
+                    const userRef = doc(db, "users", user.uid);
+                    const docSnap = await getDoc(userRef);
+                    if (docSnap.exists()) {
+                        userPhoto.src = docSnap.data().photoURL || 'https://via.placeholder.com/100';
+                    } else {
+                        userPhoto.src = 'https://via.placeholder.com/100';
+                    }
                 } else {
-                    userPhoto.src = 'https://via.placeholder.com/100';
+                    userPhoto.src = user.photoURL;
                 }
             } else {
                 loginForm.style.display = 'block';
@@ -704,6 +650,13 @@
             }
         });
 
+    
+        // 🔄 繼續按鈕 - 跳轉到主頁
+        continueBtn.addEventListener('click', () => {
+            window.location.href = "/home.html";
+        });
+    
     </script>
+    
 </body>
 </html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+    
+        // 🔄 初始化 Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBMPBJOBzSrJZUHK781948I_ROqVux3YHI",
+            authDomain: "lumzenmind.firebaseapp.com",
+            projectId: "lumzenmind",
+            storageBucket: "lumzenmind.appspot.com",
+            messagingSenderId: "1028669516548",
+            appId: "1:1028669516548:web:3888d2c7bd5d1747207e51",
+            measurementId: "G-DMYR2Q35NG"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+    
+        // 🔍 驗證狀態
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // ✅ 顯示內容並隱藏 Loading
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("protected-content").style.display = "block";
+            } else {
+                // 🚫 導向登入頁面
+                window.location.href = "/index.html";
+            }
+        });
+    </script>    
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal PWA App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script defer src="js/modal.js"></script>
+    <script defer src="js/page-loader.js"></script>
+    <script defer src="js/router.js"></script>
+</head>
+<body style="background-color: var(--background-color); color: var(--text-color);">
+
+    <!-- Navbar -->
+    <nav class="navbar" style="background-color: var(--primary-color); color: var(--text-color);">
+        <a href="javascript:void(0)" class="back-arrow" id="backButton">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <!-- <span class="navbar-title" id="navbarTitle">Home</span> -->
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto p-4">
+        <div id="content" class="bg-white p-6 shadow-md rounded-lg max-w-4xl mx-auto">
+            Loading...
+        </div>
+    </div>
+    <!-- Tabbar -->
+    <div id="tabbar" class="tabbar" style="background-color: var(--secondary-color); color: var(--text-color);">
+        <!-- JavaScript 會動態生成按鈕 -->
+    </div>
+
+</body>
+</html>
+

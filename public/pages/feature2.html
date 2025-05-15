@@ -1,0 +1,30 @@
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+    // 🔄 初始化 Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBMPBJOBzSrJZUHK781948I_ROqVux3YHI",
+        authDomain: "lumzenmind.firebaseapp.com",
+        projectId: "lumzenmind",
+        storageBucket: "lumzenmind.appspot.com",
+        messagingSenderId: "1028669516548",
+        appId: "1:1028669516548:web:3888d2c7bd5d1747207e51",
+        measurementId: "G-DMYR2Q35NG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // 🔍 驗證狀態
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // ✅ 顯示內容並隱藏 Loading
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("protected-content").style.display = "block";
+        } else {
+            // 🚫 導向登入頁面
+            window.location.href = "/index.html";
+        }
+    });
+</script>

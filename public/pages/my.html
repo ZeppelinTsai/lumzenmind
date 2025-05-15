@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的頁面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, "Microsoft JhengHei", sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: #fff;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .user-profile {
+            background-color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: auto;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .user-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .user-id {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .menu-section {
+            background-color: #fff;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .menu-title {
+            padding: 12px 15px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f9f9f9;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+        
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .menu-text {
+            flex: 1;
+        }
+        
+        .arrow {
+            color: #ccc;
+        }
+        
+        .badge {
+            background-color: #ff3b30;
+            color: #fff;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    
+    <div class="container">
+        <div class="content">
+            <!-- 用戶資料區 -->
+            <div class="user-profile">
+                <div class="avatar">
+                    <img src="/api/placeholder/200/200" alt="用戶頭像">
+                </div>
+                <div class="user-info">
+                    <div class="user-name">張小明</div>
+                    <div class="user-id">ID: 88888888</div>
+                </div>
+                <div class="arrow">›</div>
+            </div>
+            
+            <!-- 功能選單區 -->
+            <div class="menu-section">
+                <div class="menu-title">帳戶管理</div>
+                <div class="menu-item">
+                    <div class="menu-icon">📝</div>
+                    <div class="menu-text">個人資料</div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon">🔒</div>
+                    <div class="menu-text">安全設置</div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon">💳</div>
+                    <div class="menu-text">支付方式</div>
+                    <div class="arrow">›</div>
+                </div>
+            </div>
+            
+            <div class="menu-section">
+                <div class="menu-title">應用功能</div>
+                <div class="menu-item">
+                    <div class="menu-icon">📌</div>
+                    <div class="menu-text">收藏</div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon">🔔</div>
+                    <div class="menu-text">通知</div>
+                    <div class="badge">3</div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon">⚙️</div>
+                    <div class="menu-text">設置</div>
+                    <div class="arrow">›</div>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon">❓</div>
+                    <div class="menu-text">幫助與反饋</div>
+                    <div class="arrow">›</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+    // 🔄 初始化 Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBMPBJOBzSrJZUHK781948I_ROqVux3YHI",
+        authDomain: "lumzenmind.firebaseapp.com",
+        projectId: "lumzenmind",
+        storageBucket: "lumzenmind.appspot.com",
+        messagingSenderId: "1028669516548",
+        appId: "1:1028669516548:web:3888d2c7bd5d1747207e51",
+        measurementId: "G-DMYR2Q35NG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // 🔍 驗證狀態
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // ✅ 顯示內容並隱藏 Loading
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("protected-content").style.display = "block";
+        } else {
+            // 🚫 導向登入頁面
+            window.location.href = "/index.html";
+        }
+    });
+</script>

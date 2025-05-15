@@ -1,0 +1,54 @@
+{
+  "appName": "Universal PWA App",
+  "appIcon": "/assets/icons/app-icon.png",
+  "themeColor": {
+    "primary": "#4CAF50",
+    "secondary": "#8BC34A",
+    "background": "#F5F5F5",
+    "text": "#333333"
+  },
+  "defaultLanguage": "en",
+  "languages": {
+    "en": {
+      "home": "Home",
+      "feature1": "Feature 1",
+      "feature2": "Feature 2",
+      "notification": "Notification",
+      "my": "My"
+    },
+    "zh": {
+      "home": "首頁",
+      "feature1": "功能 1",
+      "feature2": "功能 2",
+      "notification": "通知",
+      "my": "我的"
+    }
+  },
+  "pages": {
+    "home": {
+      "name": "home",
+      "icon": "fa-solid fa-house",
+      "path": "./pages/homePage.html"
+    },
+    "feature1": {
+      "name": "feature1",
+      "icon": "fa-solid fa-star",
+      "path": "./pages/feature1.html"
+    },
+    "feature2": {
+      "name": "feature2",
+      "icon": "fa-solid fa-rocket",
+      "path": "./pages/feature2.html"
+    },
+    "notification": {
+      "name": "notification",
+      "icon": "fa-solid fa-bell",
+      "path": "./pages/notification.html"
+    },
+    "my": {
+      "name": "my",
+      "icon": "fa-solid fa-user",
+      "path": "./pages/my.html"
+    }
+  }
+}

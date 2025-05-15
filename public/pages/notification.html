@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通知頁面</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            min-height: 100vh;
+        }
+        
+        header {
+            background-color: #1890ff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .notification-list {
+            padding: 12px 0;
+        }
+        
+        .notification-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification-item:active {
+            background-color: #f9f9f9;
+        }
+        
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e6f7ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            color: #1890ff;
+            font-size: 20px;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .notification-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .notification-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .unread-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff4d4f;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .nav-item.active {
+            color: #1890ff;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        
+        .empty-notification {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 300px;
+            color: #999;
+        }
+        
+        .empty-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .tabs {
+            display: flex;
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .tab.active {
+            color: #1890ff;
+            border-bottom: 2px solid #1890ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>通知</h2>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active">全部</div>
+            <div class="tab">未讀</div>
+            <div class="tab">系統</div>
+        </div>
+        
+        <div class="notification-list">
+            <div class="notification-item">
+                <div class="notification-icon">📢</div>
+                <div class="notification-content">
+                    <div class="notification-title">系統通知</div>
+                    <div class="notification-message">您的賬戶已成功升級到高級會員！</div>
+                    <div class="notification-time">2025年5月15日 10:30</div>
+                </div>
+                <div class="unread-dot"></div>
+            </div>
+            
+            <div class="notification-item">
+                <div class="notification-icon">🔔</div>
+                <div class="notification-content">
+                    <div class="notification-title">活動提醒</div>
+                    <div class="notification-message">五月優惠活動即將開始，不要錯過！</div>
+                    <div class="notification-time">2025年5月14日 15:45</div>
+                </div>
+            </div>
+            
+            <div class="notification-item">
+                <div class="notification-icon">💬</div>
+                <div class="notification-content">
+                    <div class="notification-title">新消息</div>
+                    <div class="notification-message">您收到了一條新的評論回覆。</div>
+                    <div class="notification-time">2025年5月13日 09:15</div>
+                </div>
+            </div>
+            
+            <div class="notification-item">
+                <div class="notification-icon">🎁</div>
+                <div class="notification-content">
+                    <div class="notification-title">禮品通知</div>
+                    <div class="notification-message">恭喜您獲得了一份神秘禮物！</div>
+                    <div class="notification-time">2025年5月12日 16:20</div>
+                </div>
+            </div>
+            
+            <div class="notification-item">
+                <div class="notification-icon">⚙️</div>
+                <div class="notification-content">
+                    <div class="notification-title">系統更新</div>
+                    <div class="notification-message">系統已更新到最新版本 v2.5.0</div>
+                    <div class="notification-time">2025年5月10日 22:00</div>
+                </div>
+            </div>
+            
+            <!-- 如果沒有通知，顯示空狀態 -->
+            <!-- 
+            <div class="empty-notification">
+                <div class="empty-icon">🔔</div>
+                <p>暫無通知</p>
+            </div>
+            -->
+        </div>
+        
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <div class="nav-icon">🏠</div>
+                <div>首頁</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">🌟</div>
+                <div>功能 1</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📊</div>
+                <div>功能 2</div>
+            </div>
+            <div class="nav-item active">
+                <div class="nav-icon">🔔</div>
+                <div>通知</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👤</div>
+                <div>我的</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 簡單的交互效果
+        document.addEventListener('DOMContentLoaded', function() {
+            // 標籤切換
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // 底部導航切換
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // 點擊通知項目，移除未讀標記
+            const notificationItems = document.querySelectorAll('.notification-item');
+            notificationItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const unreadDot = this.querySelector('.unread-dot');
+                    if (unreadDot) {
+                        unreadDot.remove();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-auth.js";
+
+    // 🔄 初始化 Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyBMPBJOBzSrJZUHK781948I_ROqVux3YHI",
+        authDomain: "lumzenmind.firebaseapp.com",
+        projectId: "lumzenmind",
+        storageBucket: "lumzenmind.appspot.com",
+        messagingSenderId: "1028669516548",
+        appId: "1:1028669516548:web:3888d2c7bd5d1747207e51",
+        measurementId: "G-DMYR2Q35NG"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // 🔍 驗證狀態
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // ✅ 顯示內容並隱藏 Loading
+            document.getElementById("loading").style.display = "none";
+            document.getElementById("protected-content").style.display = "block";
+        } else {
+            // 🚫 導向登入頁面
+            window.location.href = "/index.html";
+        }
+    });
+</script>
